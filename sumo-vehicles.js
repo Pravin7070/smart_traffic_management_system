@@ -4,11 +4,11 @@
 
 const SUMOVehicles = (() => {
     const vTypes = {
-        car: { id: 'car', label: 'CAR', length: 28, width: 16, accel: 2.6, decel: 4.5, maxSpeed: 13.89, minGap: 28, sigma: 0.5, color: '#3b82f6', yoloColor: '#00ff88', probability: 0.5 },
-        bus: { id: 'bus', label: 'BUS', length: 55, width: 20, accel: 1.2, decel: 4.0, maxSpeed: 11.11, minGap: 38, sigma: 0.4, color: '#f59e0b', yoloColor: '#ffbb00', probability: 0.12 },
-        truck: { id: 'truck', label: 'TRUCK', length: 48, width: 20, accel: 1.0, decel: 3.5, maxSpeed: 10.0, minGap: 38, sigma: 0.4, color: '#ef4444', yoloColor: '#ff3355', probability: 0.13 },
-        bike: { id: 'bike', label: 'BIKE', length: 16, width: 10, accel: 3.5, decel: 5.0, maxSpeed: 8.33, minGap: 18, sigma: 0.6, color: '#a855f7', yoloColor: '#bf00ff', probability: 0.15 },
-        emergency: { id: 'emergency', label: 'AMBULANCE', length: 36, width: 18, accel: 3.0, decel: 5.0, maxSpeed: 16.67, minGap: 26, sigma: 0.2, color: '#ff0044', yoloColor: '#ff0044', probability: 0 }
+        car: { id: 'car', label: 'CAR', length: 28, width: 16, accel: 2.6, decel: 4.5, maxSpeed: 13.89, minGap: 50, sigma: 0.3, color: '#3b82f6', yoloColor: '#00ff88', probability: 0.5 },
+        bus: { id: 'bus', label: 'BUS', length: 55, width: 20, accel: 1.2, decel: 4.0, maxSpeed: 11.11, minGap: 70, sigma: 0.2, color: '#f59e0b', yoloColor: '#ffbb00', probability: 0.12 },
+        truck: { id: 'truck', label: 'TRUCK', length: 48, width: 20, accel: 1.0, decel: 3.5, maxSpeed: 10.0, minGap: 70, sigma: 0.2, color: '#ef4444', yoloColor: '#ff3355', probability: 0.13 },
+        bike: { id: 'bike', label: 'BIKE', length: 16, width: 10, accel: 3.5, decel: 5.0, maxSpeed: 8.33, minGap: 35, sigma: 0.3, color: '#a855f7', yoloColor: '#bf00ff', probability: 0.15 },
+        emergency: { id: 'emergency', label: 'AMBULANCE', length: 36, width: 18, accel: 3.0, decel: 5.0, maxSpeed: 16.67, minGap: 45, sigma: 0.1, color: '#ff0044', yoloColor: '#ff0044', probability: 0 }
     };
 
     const turnAngles = {
@@ -39,13 +39,26 @@ const SUMOVehicles = (() => {
     }
 
     function isSpawnClear(dir, lane, spawnX, spawnY, vehicleLength) {
-        const requiredClearance = vehicleLength + 50;
+        // Very large clearance to prevent overlaps at spawn
+        const requiredClearance = vehicleLength + 120;
         for (const v of vehicles) {
-            if (!v.active || v.dir !== dir || v.lane !== lane) continue;
-            if (dir === 'north' || dir === 'south') {
-                if (Math.abs(v.y - spawnY) < requiredClearance) return false;
-            } else {
-                if (Math.abs(v.x - spawnX) < requiredClearance) return false;
+            if (!v.active || v.dir !== dir) continue;
+            // Check same lane strictly
+            if (v.lane === lane) {
+                if (dir === 'north' || dir === 'south') {
+                    if (Math.abs(v.y - spawnY) < requiredClearance) return false;
+                } else {
+                    if (Math.abs(v.x - spawnX) < requiredClearance) return false;
+                }
+            }
+            // Also check adjacent lanes for lateral safety
+            if (Math.abs(v.lane - lane) === 1) {
+                const lateralBuffer = 35;
+                if (dir === 'north' || dir === 'south') {
+                    if (Math.abs(v.y - spawnY) < requiredClearance * 0.7) return false;
+                } else {
+                    if (Math.abs(v.x - spawnX) < requiredClearance * 0.7) return false;
+                }
             }
         }
         return true;
@@ -134,17 +147,25 @@ const SUMOVehicles = (() => {
     function kraussFollowing(vehicle, leader, dt) {
         if (!leader) return vehicle.maxSpeed;
         const gap = getGap(vehicle, leader);
-        // Stronger early prevention
-        if (gap < 5) return Math.min(leader.speed * 0.2, 0.5);
-        if (gap < vehicle.minGap * 0.3) return Math.min(1, leader.speed * 0.2);
-        // More conservative reaction time (tau reduced from 1.2 to 0.8)
-        const tau = 0.8;
+        
+        // ZERO TOLERANCE for closeness
+        if (gap < 0) return 0;  // Overlapping - STOP
+        if (gap < 5) return 0;  // Danger zone - FULL STOP
+        if (gap < 15) return Math.min(leader.speed * 0.1, 0.2);
+        if (gap < 30) return Math.min(leader.speed * 0.15, 0.5);
+        if (gap < vehicle.minGap * 0.5) return Math.min(leader.speed * 0.2, 1);
+        
+        // Very conservative reaction time
+        const tau = 0.5;
         let vSafe = leader.speed + (gap - leader.speed * tau) / (vehicle.speed / vehicle.decel + tau);
         vSafe = Math.max(0, vSafe);
-        // More aggressive speed capping near minGap
-        if (gap < vehicle.minGap * 1.5) vSafe = Math.min(vSafe, leader.speed * 0.3);
-        else if (gap < vehicle.minGap) vSafe = Math.min(vSafe, leader.speed * 0.4);
-        const vDesired = Math.min(vehicle.maxSpeed, vehicle.speed + vehicle.accel * dt);
+        
+        // EXTREMELY aggressive speed capping
+        if (gap < vehicle.minGap * 1.5) vSafe = Math.min(vSafe, leader.speed * 0.15);
+        else if (gap < vehicle.minGap * 2.0) vSafe = Math.min(vSafe, leader.speed * 0.2);
+        else if (gap < vehicle.minGap) vSafe = Math.min(vSafe, leader.speed * 0.25);
+        
+        const vDesired = Math.min(vehicle.maxSpeed * 0.8, vehicle.speed + vehicle.accel * dt * 0.5);
         const vRandom = Math.max(0, Math.min(vSafe, vDesired) - vehicle.sigma * vehicle.accel * dt * Math.random());
         return Math.max(0, Math.min(vRandom, vehicle.maxSpeed));
     }
@@ -252,6 +273,11 @@ const SUMOVehicles = (() => {
         const emergencyMode = SUMOSignals.emergencyActive;
         const cx = SUMONetwork.cx;
         const cy = SUMONetwork.cy;
+
+        // PRE-MOVEMENT: Check and prevent collisions before vehicles move this frame
+        if (typeof CollisionSystem !== 'undefined') {
+            CollisionSystem.enforceMinimumGaps(vehicles);
+        }
 
         for (const v of vehicles) {
             if (!v.active) continue;
@@ -407,19 +433,25 @@ const SUMOVehicles = (() => {
             const leader = findLeader(v);
             let targetSpeed = kraussFollowing(v, leader, dt);
 
-            // Leader collision prevention - MORE AGGRESSIVE
+            // Leader collision prevention - ABSOLUTE ZERO TOLERANCE
             if (leader) {
                 const gap = getGap(v, leader);
-                if (gap < v.minGap * 0.2) targetSpeed = 0;
-                else if (gap < v.minGap * 0.5) targetSpeed = Math.min(targetSpeed, leader.speed * 0.3);
-                else if (gap < v.minGap) targetSpeed = Math.min(targetSpeed, leader.speed * 0.4);
-                // Emergency pushback if overlapping
-                if (gap < -1) {
-                    const pushBack = (Math.abs(gap) + 1) * 0.6;
+                
+                // Any overlap = FULL STOP
+                if (gap <= 0) {
+                    targetSpeed = 0;
+                    v.stopped = true;
+                    // Push back if overlapping
+                    const pushBack = Math.abs(gap) + 1;
                     v.x -= Math.cos(v.angle) * pushBack;
                     v.y -= Math.sin(v.angle) * pushBack;
-                    v.speed = 0;
                 }
+                // Danger zones
+                else if (gap < 10) targetSpeed = 0;
+                else if (gap < 20) targetSpeed = Math.min(targetSpeed, leader.speed * 0.1);
+                else if (gap < 35) targetSpeed = Math.min(targetSpeed, leader.speed * 0.15);
+                else if (gap < v.minGap * 0.6) targetSpeed = Math.min(targetSpeed, leader.speed * 0.2);
+                else if (gap < v.minGap) targetSpeed = Math.min(targetSpeed, leader.speed * 0.25);
             }
 
             const stopLine = SUMONetwork.getStopLine(v.dir);
@@ -553,23 +585,27 @@ const SUMOVehicles = (() => {
             }
 
             // ===== SPEED UPDATE =====
-            // Faster hard-brake response — use strong factor when target is 0 or much lower
+            // LIGHTNING-FAST braking response
             if (!v.stopped) {
                 let sf;
                 if (targetSpeed === 0) {
-                    sf = 0.95; // very fast deceleration to a full stop
-                } else if (targetSpeed < v.speed * 0.4) {
-                    sf = 0.8;  // strong braking when significantly slowing
-                } else if (targetSpeed < v.speed * 0.6) {
-                    sf = 0.7;  // moderate braking
+                    sf = 0.99; // INSTANT emergency stop
+                } else if (targetSpeed < v.speed * 0.1) {
+                    sf = 0.95; // Maximum emergency braking
+                } else if (targetSpeed < v.speed * 0.2) {
+                    sf = 0.9;  // Hard emergency braking
+                } else if (targetSpeed < v.speed * 0.5) {
+                    sf = 0.8;  // Very strong braking
+                } else if (targetSpeed < v.speed) {
+                    sf = 0.65; // Moderate braking
                 } else {
-                    sf = targetSpeed < v.speed ? 0.55 : 0.25;
+                    sf = 0.15; // Slow acceleration
                 }
                 v.speed += (targetSpeed - v.speed) * sf;
                 v.speed = Math.max(0, Math.min(v.speed, v.maxSpeed));
             } else {
-                v.speed *= 0.5;
-                if (v.speed < 0.05) v.speed = 0;
+                v.speed *= 0.2; // Extreme deceleration when stopped
+                if (v.speed < 0.01) v.speed = 0;
                 if (signalState === 'green' && !v.emergencyStopped) {
                     // Only unstop if junction has room
                     const inJunctionCount = countInJunction(v.dir);
@@ -587,7 +623,17 @@ const SUMOVehicles = (() => {
             if (isOffScreen(v)) { v.active = false; totalArrived++; }
         }
 
-        // Post-pass: gentle overlap resolution
+        // PRIORITY 1: Enforce minimum gaps (before collisions happen)
+        if (typeof CollisionSystem !== 'undefined') {
+            CollisionSystem.enforceMinimumGaps(vehicles);
+        }
+
+        // PRIORITY 2: Prevent overlaps with physics-based separation
+        if (typeof CollisionSystem !== 'undefined') {
+            CollisionSystem.preventCollisions(vehicles);
+        }
+
+        // PRIORITY 3: Legacy overlap resolution as final fallback
         resolveOverlaps();
 
         // Clean up
@@ -611,7 +657,7 @@ const SUMOVehicles = (() => {
     }
 
     // ===== OVERLAP RESOLUTION =====
-    // Stricter minDist, aggressive speed reduction on collision
+    // ABSOLUTE collision prevention - NO overlaps allowed
     function resolveOverlaps() {
         for (let i = 0; i < vehicles.length; i++) {
             const a = vehicles[i];
@@ -623,39 +669,42 @@ const SUMOVehicles = (() => {
                 const dx = a.x - b.x;
                 const dy = a.y - b.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
-                // Stricter minDist - add more buffer
-                const minDist = (a.length / 2 + b.length / 2) * 1.15;
+                // MASSIVE safety buffer - prevent ANY visual overlap
+                const minDist = (a.length / 2 + b.length / 2) * 1.4;
 
                 if (dist < minDist && dist > 0.1) {
                     const overlap = minDist - dist;
                     const nx = dx / dist;
                     const ny = dy / dist;
-                    // Push both apart fully
-                    const push = overlap * 0.65;
+                    // MAXIMUM push-apart force
+                    const push = overlap * 1.0;
 
-                    a.x += nx * push;
-                    a.y += ny * push;
-                    b.x -= nx * push;
-                    b.y -= ny * push;
+                    a.x += nx * push * 0.6;
+                    a.y += ny * push * 0.6;
+                    b.x -= nx * push * 0.6;
+                    b.y -= ny * push * 0.6;
 
-                    // Even mild overlap causes speed reduction
-                    if (dist < minDist * 0.5) {
-                        // Hard collision — halt both
+                    // ALL collisions = FULL STOP
+                    if (dist < minDist * 0.3) {
+                        // HARD collision - both vehicles halt completely
                         a.speed = 0;
                         b.speed = 0;
                         a.stopped = true;
                         b.stopped = true;
-                    } else if (dist < minDist * 0.8) {
-                        // Moderate: both slow down significantly
+                    } else if (dist < minDist * 0.6) {
+                        // Medium collision: extremely strong braking
+                        a.speed *= 0.2;
+                        b.speed *= 0.2;
+                        a.stopped = true;
+                        b.stopped = true;
+                    } else if (dist < minDist * 0.9) {
+                        // Mild collision: very strong braking
                         a.speed *= 0.4;
                         b.speed *= 0.4;
                     } else {
-                        // Mild: slow the faster one more
-                        if (a.speed > b.speed) {
-                            a.speed *= 0.6;
-                        } else {
-                            b.speed *= 0.6;
-                        }
+                        // Light proximity: strong braking
+                        a.speed *= 0.6;
+                        b.speed *= 0.6;
                     }
                 }
             }
