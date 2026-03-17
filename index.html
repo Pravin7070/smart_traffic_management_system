@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="AI-Based Adaptive Smart Traffic Signal System using SUMO traffic modeling - Real-time intelligent intersection control with holographic analytics dashboard">
+    <title>Smart Traffic Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="icon" href="data:," type="image/x-icon">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Main Canvas for intersection rendering -->
+    <canvas id="trafficCanvas"></canvas>
+
+    <!-- Top Header Bar -->
+    <header id="header">
+        <div class="header-left">
+            <div class="logo-icon">
+                <svg viewBox="0 0 32 32" width="28" height="28">
+                    <circle cx="16" cy="16" r="14" fill="none" stroke="url(#logoGrad)" stroke-width="2" />
+                    <path d="M16 6 L22 16 L16 26 L10 16 Z" fill="url(#logoGrad)" opacity="0.8" />
+                    <defs>
+                        <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#00f0ff" />
+                            <stop offset="100%" stop-color="#bf00ff" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+            <div class="header-title">
+                <h1>SMART TRAFFIC MANAGEMENT SYSTEM</h1>
+                <span class="header-subtitle">AI-Based Adaptive Signal Control</span>
+            </div>
+        </div>
+        <div class="header-center">
+            <div class="sim-status">
+                <span class="status-dot pulse"></span>
+                <span id="simStatus">SIMULATION ACTIVE</span>
+            </div>
+            <div class="sim-time">
+                <span class="label">SIM STEP</span>
+                <span id="simStep" class="value mono">0000</span>
+            </div>
+            <div class="sim-time">
+                <span class="label">VEHICLES</span>
+                <span id="vehicleCount" class="value mono">0</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <button class="btn-ctrl" id="btnPause" title="Pause/Resume">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                    <rect x="6" y="4" width="4" height="16" />
+                    <rect x="14" y="4" width="4" height="16" />
+                </svg>
+            </button>
+            <button class="btn-ctrl" id="btnSpeed" title="Speed Toggle">1×</button>
+            <button class="btn-ctrl" id="btnEmergency" title="Trigger Emergency Vehicle">🚑</button>
+        </div>
+    </header>
+
+    <!-- Left Dashboard Panel - Signal Control -->
+    <aside id="panelLeft" class="dashboard-panel">
+        <div class="panel-header">
+            <span class="panel-icon">🚦</span>
+            <h2>SIGNAL CONTROL</h2>
+            <span class="panel-badge">SUMO TLS</span>
+        </div>
+        <div class="panel-content">
+            <!-- Signal Phase Display -->
+            <div class="signal-phase-display" id="signalPhaseDisplay">
+                <div class="phase-label">CURRENT PHASE</div>
+                <div class="phase-state" id="phaseState">GGrrGGrr</div>
+                <div class="phase-index">Phase <span id="phaseIndex">0</span> / <span id="phaseTotal">4</span></div>
+            </div>
+
+            <!-- Per-Direction Signal Cards -->
+            <div class="signal-cards" id="signalCards">
+                <div class="signal-card" data-dir="north">
+                    <div class="signal-dir">NORTH</div>
+                    <div class="signal-lights">
+                        <div class="light red"></div>
+                        <div class="light yellow"></div>
+                        <div class="light green active"></div>
+                    </div>
+                    <div class="signal-timer mono" id="timerNorth">45</div>
+                    <div class="signal-mode">ACTUATED</div>
+                </div>
+                <div class="signal-card" data-dir="south">
+                    <div class="signal-dir">SOUTH</div>
+                    <div class="signal-lights">
+                        <div class="light red"></div>
+                        <div class="light yellow"></div>
+                        <div class="light green active"></div>
+                    </div>
+                    <div class="signal-timer mono" id="timerSouth">45</div>
+                    <div class="signal-mode">ACTUATED</div>
+                </div>
+                <div class="signal-card" data-dir="east">
+                    <div class="signal-dir">EAST</div>
+                    <div class="signal-lights">
+                        <div class="light red active"></div>
+                        <div class="light yellow"></div>
+                        <div class="light green"></div>
+                    </div>
+                    <div class="signal-timer mono" id="timerEast">45</div>
+                    <div class="signal-mode">ACTUATED</div>
+                </div>
+                <div class="signal-card" data-dir="west">
+                    <div class="signal-dir">WEST</div>
+                    <div class="signal-lights">
+                        <div class="light red active"></div>
+                        <div class="light yellow"></div>
+                        <div class="light green"></div>
+                    </div>
+                    <div class="signal-timer mono" id="timerWest">45</div>
+                    <div class="signal-mode">ACTUATED</div>
+                </div>
+            </div>
+
+            <!-- SUMO Actuated Parameters -->
+            <div class="sumo-params">
+                <div class="param-title">ACTUATED PARAMS</div>
+                <div class="param-row"><span>minDur</span><span class="mono" id="paramMinDur">15s</span></div>
+                <div class="param-row"><span>maxDur</span><span class="mono" id="paramMaxDur">60s</span></div>
+                <div class="param-row"><span>maxGap</span><span class="mono" id="paramMaxGap">3.0s</span></div>
+                <div class="param-row"><span>detGap</span><span class="mono" id="paramDetGap">2.0s</span></div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Right Dashboard Panel - Analytics -->
+    <aside id="panelRight" class="dashboard-panel">
+        <div class="panel-header">
+            <span class="panel-icon">📊</span>
+            <h2>AI ANALYTICS</h2>
+            <span class="panel-badge live-badge">LIVE</span>
+        </div>
+        <div class="panel-content">
+            <!-- YOLO Detection Section -->
+            <div class="yolo-section" id="yoloSection">
+                <div class="section-title">
+                    YOLO DETECTION
+                    <span class="yolo-status" id="yoloStatus">OFFLINE</span>
+                </div>
+                <div class="yolo-total">
+                    <span id="yoloTotal" class="yolo-count">0</span>
+                    <small>DETECTED</small>
+                </div>
+                <div class="yolo-breakdown" id="yoloBreakdown">
+                    <div class="yolo-type">
+                        <span class="yolo-dot car"></span>
+                        <span>Car</span>
+                        <span class="mono" id="yoloCar">0</span>
+                    </div>
+                    <div class="yolo-type">
+                        <span class="yolo-dot motorcycle"></span>
+                        <span>Bike</span>
+                        <span class="mono" id="yoloMotorcycle">0</span>
+                    </div>
+                    <div class="yolo-type">
+                        <span class="yolo-dot bus"></span>
+                        <span>Bus</span>
+                        <span class="mono" id="yoloBus">0</span>
+                    </div>
+                    <div class="yolo-type">
+                        <span class="yolo-dot truck"></span>
+                        <span>Truck</span>
+                        <span class="mono" id="yoloTruck">0</span>
+                    </div>
+                </div>
+                <div class="yolo-meta">
+                    <span>FPS: <span class="mono" id="yoloFps">0</span></span>
+                    <span>Frame: <span class="mono" id="yoloFrame">0</span></span>
+                </div>
+            </div>
+
+            <!-- Detector Readouts -->
+            <div class="detector-section">
+                <div class="section-title">E2 LANE DETECTORS</div>
+                <div class="detector-grid" id="detectorGrid">
+                    <div class="detector-card">
+                        <div class="det-label">N APPROACH</div>
+                        <div class="det-queue"><span id="queueN">0</span><small>queue</small></div>
+                        <div class="det-bar">
+                            <div class="det-bar-fill" id="barN" style="width:0%"></div>
+                        </div>
+                        <div class="det-stats">
+                            <span><small>density</small><span class="mono" id="densityN">0</span></span>
+                            <span><small>speed</small><span class="mono" id="speedN">0</span></span>
+                        </div>
+                    </div>
+                    <div class="detector-card">
+                        <div class="det-label">S APPROACH</div>
+                        <div class="det-queue"><span id="queueS">0</span><small>queue</small></div>
+                        <div class="det-bar">
+                            <div class="det-bar-fill" id="barS" style="width:0%"></div>
+                        </div>
+                        <div class="det-stats">
+                            <span><small>density</small><span class="mono" id="densityS">0</span></span>
+                            <span><small>speed</small><span class="mono" id="speedS">0</span></span>
+                        </div>
+                    </div>
+                    <div class="detector-card">
+                        <div class="det-label">E APPROACH</div>
+                        <div class="det-queue"><span id="queueE">0</span><small>queue</small></div>
+                        <div class="det-bar">
+                            <div class="det-bar-fill" id="barE" style="width:0%"></div>
+                        </div>
+                        <div class="det-stats">
+                            <span><small>density</small><span class="mono" id="densityE">0</span></span>
+                            <span><small>speed</small><span class="mono" id="speedE">0</span></span>
+                        </div>
+                    </div>
+                    <div class="detector-card">
+                        <div class="det-label">W APPROACH</div>
+                        <div class="det-queue"><span id="queueW">0</span><small>queue</small></div>
+                        <div class="det-bar">
+                            <div class="det-bar-fill" id="barW" style="width:0%"></div>
+                        </div>
+                        <div class="det-stats">
+                            <span><small>density</small><span class="mono" id="densityW">0</span></span>
+                            <span><small>speed</small><span class="mono" id="speedW">0</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vehicle Density Chart -->
+            <div class="chart-section">
+                <div class="section-title">VEHICLE DENSITY</div>
+                <canvas id="densityChart" width="280" height="100"></canvas>
+            </div>
+
+            <!-- Throughput Chart -->
+            <div class="chart-section">
+                <div class="section-title">THROUGHPUT / MIN</div>
+                <canvas id="throughputChart" width="280" height="80"></canvas>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Bottom Modules Bar -->
+    <div id="modulesBar">
+        <div class="module-node" id="modYolo">
+            <div class="module-icon">🎯</div>
+            <div class="module-name">YOLO<br>DETECTION</div>
+            <div class="module-status" id="yoloModStatus">OFFLINE</div>
+        </div>
+        <div class="module-connector">
+            <div class="data-stream"></div>
+        </div>
+        <div class="module-node" id="modDetect">
+            <div class="module-icon">👁️</div>
+            <div class="module-name">VEHICLE<br>DETECTION</div>
+            <div class="module-status active">ACTIVE</div>
+        </div>
+        <div class="module-connector">
+            <div class="data-stream"></div>
+        </div>
+        <div class="module-node" id="modQueue">
+            <div class="module-icon">📏</div>
+            <div class="module-name">QUEUE<br>ANALYSIS</div>
+            <div class="module-status active">ACTIVE</div>
+        </div>
+        <div class="module-connector">
+            <div class="data-stream"></div>
+        </div>
+        <div class="module-node" id="modSignal">
+            <div class="module-icon">🧠</div>
+            <div class="module-name">SIGNAL<br>OPTIMIZER</div>
+            <div class="module-status active">ACTIVE</div>
+        </div>
+        <div class="module-connector">
+            <div class="data-stream"></div>
+        </div>
+        <div class="module-node" id="modSumo">
+            <div class="module-icon">🔬</div>
+            <div class="module-name">SUMO<br>ENGINE</div>
+            <div class="module-status active">ACTIVE</div>
+        </div>
+        <div class="module-connector">
+            <div class="data-stream"></div>
+        </div>
+        <div class="module-node" id="modDash">
+            <div class="module-icon">📡</div>
+            <div class="module-name">DASHBOARD<br>MONITOR</div>
+            <div class="module-status active">ACTIVE</div>
+        </div>
+    </div>
+
+    <!-- Emergency Alert Overlay -->
+    <div id="emergencyOverlay" class="hidden">
+        <div class="emergency-content">
+            <span class="emergency-icon">🚨</span>
+            <span>EMERGENCY VEHICLE PRIORITY — SIGNAL PREEMPTION ACTIVE</span>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="sumo-network.js"></script>
+    <script src="sumo-vehicles.js"></script>
+    <script src="sumo-signals.js"></script>
+    <script src="sumo-detectors.js"></script>
+    <script src="renderer.js"></script>
+    <script src="dashboard.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
