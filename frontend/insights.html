@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Insights | Smart Traffic Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="assets/styles/insights.css">
+</head>
+
+<body>
+    <div class="background-orb orb-a"></div>
+    <div class="background-orb orb-b"></div>
+
+    <header class="page-header">
+        <div>
+            <h1>Traffic Insights</h1>
+        </div>
+        <div class="header-actions">
+            <span id="lastUpdated" class="muted">Updated: --:--:--</span>
+            <a href="/" class="back-link">Back To Simulation</a>
+        </div>
+    </header>
+
+    <main class="insights-grid">
+        <section class="card span-2 chart-card">
+            <div class="card-head">
+                <h2>Traffic Flow Trend</h2>
+                <span class="pill">Chart.js</span>
+            </div>
+            <canvas id="trafficTrendChart" height="120"></canvas>
+        </section>
+
+        <section class="card">
+            <div class="card-head">
+                <h2>Congestion Level</h2>
+            </div>
+            <div id="congestionLevel" class="metric-text">--</div>
+            <p id="congestionHint" class="muted">Waiting for data...</p>
+        </section>
+
+        <section class="card">
+            <div class="card-head">
+                <h2>Efficiency Score</h2>
+            </div>
+            <div id="efficiencyScore" class="metric-text">--</div>
+            <p id="efficiencyHint" class="muted">Calculated using speed, volume, and violations</p>
+        </section>
+
+        <section class="card span-2">
+            <div class="card-head">
+                <h2>Peak Traffic Time Per Direction</h2>
+            </div>
+            <div id="peakTrafficGrid" class="peak-grid"></div>
+        </section>
+
+        <section class="card">
+            <div class="card-head">
+                <h2>Violation Summary</h2>
+            </div>
+            <div id="violationSummary" class="summary-list"></div>
+        </section>
+
+        <section class="card span-2">
+            <div class="card-head">
+                <h2>Executive Insights</h2>
+                <span id="insightCount" class="pill">0 insights</span>
+            </div>
+            <ul id="executiveInsights" class="insight-list"></ul>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script src="js/utils/constants.js"></script>
+    <script src="js/utils/helpers.js"></script>
+    <script src="js/api/client.js"></script>
+    <script src="js/modules/insights.js"></script>
+</body>
+
+</html>

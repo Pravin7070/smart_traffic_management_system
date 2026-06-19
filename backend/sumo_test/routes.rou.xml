@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+    <vType id="normal" accel="2.0" decel="4.5" sigma="0.4" length="5.0" minGap="2.5" maxSpeed="13.9" color="0,160,255"/>
+    <vType id="aggressive" accel="3.0" decel="5.0" sigma="0.8" length="5.0" minGap="1.2" maxSpeed="17.0" color="255,140,0"/>
+    <vType id="rule_breaker" accel="3.4" decel="5.2" sigma="1.0" length="5.0" minGap="0.8" maxSpeed="18.0" color="255,50,50"/>
+</routes>

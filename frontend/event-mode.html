@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI Predictive Event Traffic Management System for stadiums, concerts, festivals, and VIP event control">
+    <title>Event Mode | Smart Traffic Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/styles/main.css">
+    <link rel="stylesheet" href="assets/styles/event-mode.css">
+    <link rel="icon" href="data:;" type="image/x-icon">
+</head>
+
+<body class="event-mode-page">
+    <div class="event-bg-orb orb-a"></div>
+    <div class="event-bg-orb orb-b"></div>
+    <div class="event-grid-overlay"></div>
+
+    <header id="header" class="event-header">
+        <div class="header-left">
+            <div class="logo-icon">
+                <svg viewBox="0 0 32 32" width="28" height="28">
+                    <circle cx="16" cy="16" r="14" fill="none" stroke="url(#eventLogoGrad)" stroke-width="2" />
+                    <path d="M16 6 L22 16 L16 26 L10 16 Z" fill="url(#eventLogoGrad)" opacity="0.8" />
+                    <defs>
+                        <linearGradient id="eventLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#00f0ff" />
+                            <stop offset="100%" stop-color="#bf00ff" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+            <div class="header-title">
+                <h1>EVENT MODE</h1>
+                <span class="header-subtitle">AI Predictive Event Traffic Command Center</span>
+            </div>
+        </div>
+
+        <div class="header-center event-header-center">
+            <nav class="top-nav" aria-label="Primary">
+                <a href="/" class="nav-tab nav-link">Simulation</a>
+                <a href="/" class="nav-tab nav-link">Dashboard</a>
+                <a href="/insights" class="nav-tab nav-link">Insights</a>
+                <span class="nav-tab active nav-link" aria-current="page">Event Mode</span>
+            </nav>
+            <div class="sim-status event-status">
+                <span class="status-dot pulse"></span>
+                <span id="eventSystemStatus">PREDICTIVE MODE ACTIVE</span>
+            </div>
+            <div class="sim-time">
+                <span class="label">TRAFFIC PRESSURE</span>
+                <span id="eventPressureValue" class="value mono">0%</span>
+            </div>
+            <div class="sim-time">
+                <span class="label">TIME TO PEAK EXIT</span>
+                <span id="eventPeakExitValue" class="value mono">--</span>
+            </div>
+        </div>
+
+        <div class="header-right event-header-right">
+            <button id="eventModeBack" class="btn-ctrl btn-back" title="Back to simulation">↩</button>
+            <button id="eventModeToggle" class="btn-ctrl btn-primary" title="Activate Event Mode">LIVE</button>
+            <button id="eventModeExport" class="btn-ctrl" title="Export event report">⤓</button>
+        </div>
+    </header>
+
+    <main class="event-shell" id="eventModeShell">
+        <section class="event-hero glass-card">
+            <div class="hero-copy">
+                <span class="kicker">AI PREDICTIVE EVENT TRAFFIC MANAGEMENT SYSTEM</span>
+                <h2>Command center for stadium exits, crowd dispersal, parking release, diversion routing, and emergency lane protection.</h2>
+                <p>Pre-stage the network, detect demand surges before congestion, synchronize exit corridors, and keep priority traffic flowing across the smart city perimeter.</p>
+            </div>
+            <div class="hero-stats">
+                <article class="hero-stat">
+                    <span class="stat-label">Event Phase</span>
+                    <strong id="eventPhaseHero" class="stat-value">Pre-event</strong>
+                </article>
+                <article class="hero-stat">
+                    <span class="stat-label">Predicted Exit Surge</span>
+                    <strong id="eventSurgeHero" class="stat-value">--</strong>
+                </article>
+                <article class="hero-stat">
+                    <span class="stat-label">Traffic Efficiency</span>
+                    <strong id="eventEfficiencyHero" class="stat-value">--</strong>
+                </article>
+            </div>
+            <div class="timeline-band">
+                <div class="timeline-track">
+                    <span class="timeline-phase pre">Pre-event</span>
+                    <span class="timeline-phase live">Live event</span>
+                    <span class="timeline-phase post">Post-event dispersal</span>
+                    <div id="timelineIndicator" class="timeline-indicator"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="event-grid">
+            <article class="glass-card span-4 event-info-panel">
+                <div class="card-head">
+                    <div>
+                        <span class="section-kicker">1. Event Information Panel</span>
+                        <h3>Event Profile</h3>
+                    </div>
+                    <div class="chip chip-cyan" id="activeScenarioChip">CRICKET MATCH</div>
+                </div>
+                <div class="scenario-tabs" id="scenarioTabs"></div>
+                <div class="info-stack">
+                    <div class="info-row"><span>Event Type</span><strong id="eventTypeLabel">Cricket Match</strong></div>
+                    <div class="info-row"><span>Venue</span><strong id="eventVenueLabel">City Stadium</strong></div>
+                    <div class="info-row"><span>Expected Crowd</span><strong id="eventCrowdLabel">40,000</strong></div>
+                    <div class="info-row"><span>Start Time</span><strong id="eventStartLabel">18:30</strong></div>
+                    <div class="info-row"><span>End Time</span><strong id="eventEndLabel">22:30</strong></div>
+                </div>
+                <div class="mini-metrics">
+                    <div class="mini-metric"><span>Parking Capacity</span><strong id="parkingCapacityLabel">--</strong></div>
+                    <div class="mini-metric"><span>Exit Gates</span><strong id="gateCountLabel">4</strong></div>
+                </div>
+            </article>
+
+            <article class="glass-card span-4 event-status-panel">
+                <div class="card-head">
+                    <div>
+                        <span class="section-kicker">2. AI Event Status Panel</span>
+                        <h3>Predictive Demand State</h3>
+                    </div>
+                    <div class="chip chip-live" id="eventPhaseChip">PRE-EVENT</div>
+                </div>
+                <div class="status-stack">
+                    <div class="status-row">
+                        <div class="status-meta"><span>Traffic Pressure</span><strong id="trafficPressureLabel">0%</strong></div>
+                        <div class="progress-shell"><div id="pressureBar" class="progress-fill cyan"></div></div>
+                    </div>
+                    <div class="status-row">
+                        <div class="status-meta"><span>Predicted Congestion</span><strong id="congestionLabel">0%</strong></div>
+                        <div class="progress-shell"><div id="congestionBar" class="progress-fill magenta"></div></div>
+                    </div>
+                    <div class="status-row">
+                        <div class="status-meta"><span>Time to Peak Exit</span><strong id="peakExitLabel">--</strong></div>
+                        <div class="progress-shell"><div id="peakBar" class="progress-fill green"></div></div>
+                    </div>
+                </div>
+                <div class="phase-cluster">
+                    <button class="phase-pill active" data-phase="pre">Pre-event</button>
+                    <button class="phase-pill" data-phase="live">Live event</button>
+                    <button class="phase-pill" data-phase="post">Post-event dispersal</button>
+                </div>
+                <div class="event-signal-row">
+                    <div class="signal-chip active" id="sigGreenWave">Green Wave</div>
+                    <div class="signal-chip" id="sigOutbound">Outbound Priority</div>
+                    <div class="signal-chip" id="sigParking">Parking Release</div>
+                </div>
+            </article>
+
+            <article class="glass-card span-4 event-live-panel">
+                <div class="card-head">
+                    <div>
+                        <span class="section-kicker">9. Live Metrics Panel</span>
+                        <h3>Operational KPIs</h3>
+                    </div>
+                    <div class="chip chip-amber">REAL TIME</div>
+                </div>
+                <div class="live-metrics-grid">
+                    <div class="live-metric"><span>Total Vehicles</span><strong id="totalVehiclesLabel">0</strong></div>
+                    <div class="live-metric"><span>Queue Length</span><strong id="queueLengthLabel">0</strong></div>
+                    <div class="live-metric"><span>Avg Speed</span><strong id="avgSpeedLabel">0 km/h</strong></div>
+                    <div class="live-metric"><span>Throughput</span><strong id="throughputLabel">0/h</strong></div>
+                    <div class="live-metric"><span>Delay Reduction</span><strong id="delayReductionLabel">0%</strong></div>
+                    <div class="live-metric"><span>Emission Reduction</span><strong id="emissionReductionLabel">0%</strong></div>
+                </div>
+                <div class="score-ring-wrap">
+                    <div class="score-ring" id="efficiencyRing"><span id="trafficEfficiencyLabel">0</span></div>
+                    <div class="score-copy">
+                        <span>Traffic Efficiency Score</span>
+                        <p id="efficiencyHint">Waiting for live event data.</p>
+                    </div>
+                </div>
+            </article>
+
+            <article class="glass-card span-8 chart-panel">
+                <div class="card-head">
+                    <div>
+                        <span class="section-kicker">3. AI Prediction Graph</span>
+                        <h3>Predicted vs Actual Vehicles</h3>
+                    </div>
+                    <div class="chip chip-purple">FORECAST</div>
+                </div>
+                <canvas id="predictionChart" height="180"></canvas>
+            </article>
+
+            <article class="glass-card span-4 strategy-panel">
+                <div class="card-head">
+                    <div>
+                        <span class="section-kicker">5. AI Traffic Strategy Panel</span>
+                        <h3>Live Decisions</h3>
+                    </div>
+                    <div class="chip chip-green">ACTIVE</div>
+                </div>
+                <div id="strategyList" class="strategy-list"></div>
+            </article>
+
+            <article class="glass-card span-8 map-panel">
+                <div class="card-head">
+                    <div>
+                        <span class="section-kicker">4. Live Event Map</span>
+                        <h3>Smart City Event Traffic Visualization</h3>
+                    </div>
+                    <div class="map-legend">
+                        <span><i class="dot dot-cyan"></i> Traffic</span>
+                        <span><i class="dot dot-red"></i> Congestion</span>
+                        <span><i class="dot dot-green"></i> Emergency</span>
+                        <span><i class="dot dot-orange"></i> Diversion</span>
+                    </div>
+                </div>
+                <div class="map-wrap">
+                    <canvas id="eventTrafficCanvas"></canvas>
+                    <div class="map-overlay">
+                        <div class="overlay-chip" id="routeOverlay">Green wave ready</div>
+                        <div class="overlay-chip overlay-right" id="corridorOverlay">Emergency corridor reserved</div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="glass-card span-4 dispersal-panel">
+                <div class="card-head">
+                    <div>
+                        <span class="section-kicker">6. Crowd Dispersal System</span>
+                        <h3>Exit Gate Release Table</h3>
+                    </div>
+                    <div class="chip chip-cyan">SYNCED</div>
+                </div>
+                <div id="gateTable" class="release-table"></div>
+            </article>
+
+            <article class="glass-card span-4 parking-panel">
+                <div class="card-head">
+                    <div>
+                        <span class="section-kicker">7. Smart Parking Management</span>
+                        <h3>Occupancy & Release Sequence</h3>
+                    </div>
+                    <div class="chip chip-amber" id="parkingAlertChip">STABLE</div>
+                </div>
+                <div id="parkingList" class="parking-list"></div>
+            </article>
+
+            <article class="glass-card span-4 recommendations-panel">
+                <div class="card-head">
+                    <div>
+                        <span class="section-kicker">8. AI Recommendation Engine</span>
+                        <h3>Predictive Suggestions</h3>
+                    </div>
+                    <div class="chip chip-purple">AI</div>
+                </div>
+                <ul id="recommendationList" class="recommendation-list"></ul>
+            </article>
+
+            <article class="glass-card span-12 control-panel">
+                <div class="card-head">
+                    <div>
+                        <span class="section-kicker">10. Event Control System</span>
+                        <h3>Command Actions</h3>
+                    </div>
+                    <div class="chip chip-live" id="controlStatusChip">READY</div>
+                </div>
+                <div class="control-grid">
+                    <button class="control-action primary" data-action="activate">Activate Event Mode</button>
+                    <button class="control-action danger" data-action="emergency">Emergency Override</button>
+                    <button class="control-action" data-action="diversion">Open Diversion</button>
+                    <button class="control-action" data-action="oneway">Enable One-Way Mode</button>
+                    <button class="control-action" data-action="crowd">Activate Crowd Control</button>
+                    <button class="control-action" data-action="vip">Activate VIP Corridor</button>
+                </div>
+                <div id="aiFeed" class="ai-feed"></div>
+            </article>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script src="js/utils/constants.js"></script>
+    <script src="js/utils/helpers.js"></script>
+    <script src="js/api/client.js"></script>
+    <script src="js/modules/event-mode.js"></script>
+</body>
+
+</html>

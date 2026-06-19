@@ -1,0 +1,21 @@
+{
+  "spawn": {
+    "normal": 0.62,
+    "aggressive": 0.23,
+    "rule_breaker": 0.15
+  },
+  "violation_chance": {
+    "aggressive": 0.25,
+    "rule_breaker": 0.6
+  },
+  "congestion": {
+    "boost_direction_weight": 0.55,
+    "extra_spawns_per_step": 2,
+    "speed_threshold": 1.2,
+    "duration_sec": 40
+  },
+  "accident": {
+    "stopped_speed_threshold": 0.25,
+    "duration_sec": 50
+  }
+}

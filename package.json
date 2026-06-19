@@ -1,0 +1,23 @@
+{
+  "name": "smart-traffic-management-system",
+  "version": "1.0.0",
+  "description": "AI-Based Adaptive Smart Traffic Signal System using SUMO traffic modeling - Separated Frontend and Backend",
+  "private": true,
+  "scripts": {
+    "start": "npm --prefix backend start",
+    "dev": "npm --prefix backend dev",
+    "install-all": "npm install && npm --prefix backend install",
+    "install-backend": "npm --prefix backend install",
+    "sumo-test": "python backend/sumo_test/run_sumo_test.py"
+  },
+  "keywords": [
+    "traffic",
+    "management",
+    "AI",
+    "SUMO",
+    "simulation",
+    "multi-intersection"
+  ],
+  "author": "",
+  "license": "MIT"
+}
