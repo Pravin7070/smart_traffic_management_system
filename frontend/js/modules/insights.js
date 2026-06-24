@@ -3,12 +3,19 @@ const REFRESH_MS = 5000;
 
 const TrafficInsights = (() => {
     let chart;
-    const mockData = generateMockData(MOCK_RECORDS);
+    let __initialized = false;
+    let __intervalId = null;
+    let insightsExpanded = false;
 
     function init() {
-        renderAll(mockData);
-        setInterval(() => {
-            renderAll(mockData);
+        // Prevent double initialization if script is executed more than once
+        if (__initialized) return;
+        __initialized = true;
+
+        // Render immediate snapshot and then refresh with newly generated mock data
+        renderAll(generateMockData(MOCK_RECORDS));
+        __intervalId = setInterval(() => {
+            renderAll(generateMockData(MOCK_RECORDS));
         }, REFRESH_MS);
     }
 
@@ -219,6 +226,7 @@ const TrafficInsights = (() => {
         const insights = [];
         const listEl = document.getElementById('executiveInsights');
         const countEl = document.getElementById('insightCount');
+        const toggleBtn = document.getElementById('toggleInsights');
 
         const avgByDirection = {
             north: average(data.map(d => d.north)),
@@ -266,7 +274,20 @@ const TrafficInsights = (() => {
 
         countEl.textContent = `${insights.length} insights`;
 
-        listEl.innerHTML = insights.map((item, index) => {
+        // Toggle handling: show first few by default, toggle to show all.
+        if (toggleBtn) {
+            toggleBtn.textContent = insightsExpanded ? 'Show less' : 'Show more';
+            toggleBtn.setAttribute('aria-expanded', String(insightsExpanded));
+            toggleBtn.onclick = () => {
+                insightsExpanded = !insightsExpanded;
+                renderExecutiveInsights(data, avgVolume, avgSpeed, totalViolations);
+            };
+        }
+
+        const maxVisible = insightsExpanded ? insights.length : 3;
+        const visible = insights.slice(0, maxVisible);
+
+        listEl.innerHTML = visible.map((item, index) => {
             const insightNumber = String(index + 1).padStart(2, '0');
             return `
                 <li class="insight-item">

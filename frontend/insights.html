@@ -68,7 +68,10 @@
         <section class="card span-2">
             <div class="card-head">
                 <h2>Executive Insights</h2>
-                <span id="insightCount" class="pill">0 insights</span>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span id="insightCount" class="pill">0 insights</span>
+                    <button id="toggleInsights" class="pill toggle" aria-expanded="false">Show more</button>
+                </div>
             </div>
             <ul id="executiveInsights" class="insight-list"></ul>
         </section>

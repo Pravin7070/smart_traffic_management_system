@@ -7,6 +7,11 @@ const Alert = require('../models/Alert');
 
 const seedDatabase = async () => {
     try {
+        // If the database connection isn't available, skip seeding.
+        if (!collection('event_scenarios')) {
+            console.warn('⚠ Database not connected - skipping seeding. Start MongoDB to enable seeding.');
+            return;
+        }
         // Seed Event Scenarios
         if (await collection('event_scenarios').countDocuments() === 0) {
             const scenarios = Event.defaults.map(s => ({
