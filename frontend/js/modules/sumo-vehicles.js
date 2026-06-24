@@ -26,7 +26,7 @@ const SUMOVehicles = (() => {
     const SPEED_SCALE = 1.8;
     const JUNCTION_STUCK_TIMEOUT = 5.5;
     const APPROACH_STUCK_TIMEOUT = 4.0;
-    const SOUTH_LANE_DISPLAY_NAME = 'Naveenkumar';
+    const SOUTH_LANE_DISPLAY_NAME = '';
 
     // Max vehicles from ONE direction allowed in junction at once
     const MAX_IN_JUNCTION_PER_DIR = 2;
